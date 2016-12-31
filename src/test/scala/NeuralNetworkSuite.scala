@@ -31,4 +31,10 @@ class NeuralNetworkSuite extends FunSuite {
     val expected = List(0.31682708, 0.69627909)
     for ((a, e) <- actual.toArray zip expected) assert(a === e)
   }
+
+  test("softmax(0.3, 2.9, 4.0) nearly equals to (0.01821127, 0.24519181, 0.73659691)") {
+    val actual = softmax(DenseVector(0.3, 2.9, 4.0))
+    val expected = List(0.01821127, 0.24519181, 0.73659691)
+    for ((a, e) <- actual.toArray zip expected) assert(a === e)
+  }
 }

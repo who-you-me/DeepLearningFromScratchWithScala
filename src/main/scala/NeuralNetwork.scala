@@ -1,5 +1,5 @@
 import scala.math.exp
-import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.linalg.{DenseMatrix, DenseVector, max, sum}
 
 object NeuralNetwork {
   def main(args: Array[String]): Unit = {
@@ -61,4 +61,11 @@ object NeuralNetwork {
 
   def identityFunction(xs: DenseVector[Double]): DenseVector[Double] =
     xs
+
+  def softmax(as: DenseVector[Double]): DenseVector[Double] = {
+    val c = max(as)
+    val expAs = (as - c).map(exp)
+    val sumExpAs = sum(expAs)
+    expAs / sumExpAs
+  }
 }
