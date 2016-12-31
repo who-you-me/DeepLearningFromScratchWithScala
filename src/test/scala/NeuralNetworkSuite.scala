@@ -1,6 +1,6 @@
 import org.scalatest.FunSuite
 import org.scalactic.TolerantNumerics
-import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.linalg.DenseVector
 import NeuralNetwork._
 
 class NeuralNetworkSuite extends FunSuite {
@@ -8,7 +8,7 @@ class NeuralNetworkSuite extends FunSuite {
 
   test("stepFunction(-1.0, 1.0, 2.0) equals to (0.0, 1.0, 1.0)") {
     val xs = DenseVector(-1.0, 1.0, 2.0)
-    val expected = DenseMatrix(0.0, 1.0, 1.0)
+    val expected = DenseVector(0.0, 1.0, 1.0)
     assert(stepFunction(xs) == expected)
   }
 
@@ -20,7 +20,7 @@ class NeuralNetworkSuite extends FunSuite {
 
   test("relu(-1.0, 1.0, 2.0) equals to (0.0, 1.0, 2.0)") {
     val xs = DenseVector(-1.0, 1.0, 2.0)
-    val expected = DenseMatrix(0.0, 1.0, 2.0)
+    val expected = DenseVector(0.0, 1.0, 2.0)
     assert(relu(xs) == expected)
   }
 
