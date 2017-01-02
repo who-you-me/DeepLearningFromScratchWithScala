@@ -44,25 +44,25 @@ class Data(prefix: String) extends Serializable {
 class ImageData(prefix: String) extends Data(prefix) {
   private val data = new ImageLoader(s"$filePrefix-images-idx3-ubyte.gz").load()
 
-  def get(normalize: Boolean = true): List[DenseMatrix[Double]] =
-    if (normalize) normalizeFunc(data)
-    else data
+  def get(normalize: Boolean = true): Stream[DenseMatrix[Double]] =
+    if (normalize) normalizeFunc(data.toStream)
+    else data.toStream
 
-  def getFlatten(normalize: Boolean = true): List[DenseVector[Double]] = {
+  def getFlatten(normalize: Boolean = true): Stream[DenseVector[Double]] = {
     flattenFunc(get(normalize))
   }
 
-  private def normalizeFunc(xs: List[DenseMatrix[Double]]): List[DenseMatrix[Double]] =
+  private def normalizeFunc(xs: Stream[DenseMatrix[Double]]): Stream[DenseMatrix[Double]] =
     xs.map(_ / 255.0)
 
-  private def flattenFunc(xs: List[DenseMatrix[Double]]): List[DenseVector[Double]] =
+  private def flattenFunc(xs: Stream[DenseMatrix[Double]]): Stream[DenseVector[Double]] =
     xs.map(_.t.toDenseVector)
 }
 
 class LabelData(prefix: String) extends Data(prefix) {
   private val data = new LabelLoader(s"$filePrefix-labels-idx1-ubyte.gz").load()
 
-  def get(): List[Int] = data
+  def get(): Stream[Int] = data.toStream
 
   //  def getOneHot(): List[List[Int]]
 }
