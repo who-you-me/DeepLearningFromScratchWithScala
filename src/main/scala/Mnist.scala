@@ -6,24 +6,26 @@ import java.util.zip.GZIPInputStream
 import scala.collection.mutable.ListBuffer
 import breeze.linalg.{DenseMatrix, DenseVector}
 
-object Mnist {
+object Const {
   val dataSetDir = List(System.getenv("HOME"), ".cache", "mnist").mkString(File.separator)
-  private val path = List(dataSetDir, "mnist.ser").mkString(File.separator)
+}
+
+object Mnist {
+  private val path = List(Const.dataSetDir, "mnist.ser").mkString(File.separator)
 
   def get() = {
     if (Files.exists(Paths.get(path))) {
       val ois = new ObjectInputStream(new FileInputStream(path))
-      try
-        ois.readObject().asInstanceOf[Mnist]
-      finally
-        ois.close()
+
+      try ois.readObject().asInstanceOf[Mnist]
+      finally ois.close()
     } else {
       val mnist = new Mnist
       val oos = new ObjectOutputStream(new FileOutputStream(path))
-      try
-        oos.writeObject(mnist)
-      finally
-        oos.close()
+
+      try oos.writeObject(mnist)
+      finally oos.close()
+
       mnist
     }
   }
@@ -69,25 +71,24 @@ class LabelData(prefix: String) extends Data(prefix) {
 
 class Loader(fileName: String) {
   val urlBase = "http://yann.lecun.com/exdb/mnist/"
-  val dataSetDir = List(System.getenv("HOME"), ".cache", "mnist").mkString(File.separator)
 
-  private val dir = new File(dataSetDir)
-  if (!dir.exists) dir.mkdirs()
+  val dataSetDir = Const.dataSetDir
+  if (!Files.exists(Paths.get(dataSetDir))) new File(dataSetDir).mkdirs()
 
-  private val filePath = List(dataSetDir, fileName).mkString(File.separator)
-  if (!Files.exists(Paths.get(filePath))) download(fileName)
+  private val path = List(dataSetDir, fileName).mkString(File.separator)
+  if (!Files.exists(Paths.get(path))) download(fileName)
 
-  protected val stream = new DataInputStream(new GZIPInputStream(new FileInputStream(filePath)))
+  protected val stream = new DataInputStream(new GZIPInputStream(new FileInputStream(path)))
 
   private def download(fileName: String): Unit = {
-    print("Downloading " + fileName + "... ")
+    print(s"Downloading $fileName...")
 
     val stream = new URL(urlBase + fileName).openStream()
     val buf = Stream.continually(stream.read).takeWhile(_ != -1).map(_.byteValue).toArray
-    val file = new BufferedOutputStream(new FileOutputStream(filePath))
+    val file = new BufferedOutputStream(new FileOutputStream(path))
 
-    file.write(buf)
-    file.close()
+    try file.write(buf)
+    finally { file.close(); stream.close() }
 
     println("Done")
   }
@@ -95,19 +96,18 @@ class Loader(fileName: String) {
 
 class ImageLoader(fileName: String) extends Loader(fileName) {
   val magicNumber = stream.readInt()
-  assert(magicNumber == 2051, "Wrong magic number: " + magicNumber)
+  assert(magicNumber == 2051, s"Wrong magic number: $magicNumber")
 
   val count = stream.readInt()
   val rows = stream.readInt()
   val cols = stream.readInt()
 
   def load(): List[DenseMatrix[Double]] = {
-    print("Converting " + fileName + " to DenseMatrix ...")
+    print(s"Converting $fileName to DenseMatrix...")
 
     val buf = new ListBuffer[DenseMatrix[Double]]
-    for (_ <- 0 until count) {
-      buf += loadOne()
-    }
+    for (_ <- 0 until count) buf += loadOne()
+    stream.close()
 
     println("Done")
     buf.toList
@@ -125,14 +125,16 @@ class ImageLoader(fileName: String) extends Loader(fileName) {
 
 class LabelLoader(fileName: String) extends Loader(fileName) {
   val magicNumber = stream.readInt()
-  assert(magicNumber == 2049, "Wrong magic number: " + magicNumber)
+  assert(magicNumber == 2049, s"Wrong magic number: $magicNumber")
 
   val count = stream.readInt()
 
   def load(): List[Int] = {
-    print("Converting " + fileName + " to List ...")
+    print(s"Converting $fileName to List...")
+
     val buf = new ListBuffer[Int]
     for (_ <- 0 until count) buf += stream.readUnsignedByte()
+    stream.close()
 
     println("Done")
     buf.toList
