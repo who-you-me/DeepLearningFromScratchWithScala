@@ -9,33 +9,34 @@ object NeuralNetwork {
   private val weightPath = "./src/main/resources/sample_weight.json"
 
   def main(args: Array[String]): Unit = {
-    val (xs, ts) = getData()
+    val (x, t) = getData()
     val network = initNetwork()
 
 //    val accuracy = for ((x, t) <- xs zip ts) yield {
 //      val y = predict(network, x)
-//      val p = argmax(y)
+//      val p = argmax(y.toDenseVector)
 //      if (p == t) 1.0 else 0.0
 //    }
 //
 //    println("Accuracy:" + accuracy.sum / xs.size)
 
     val batchSize = 100
-    val accuracy = for (i <- xs.indices by batchSize) yield {
+    val accuracy = for (i <- x.indices by batchSize) yield {
+      // DenseMatrixはDenseMatrixのコンストラクタに渡せないのでDenseVectorに変換
+      val xs = x.slice(i, i + batchSize).map(_.toDenseVector)
       // DenseMatrix(DenseVector1, DenseVector2)とすると縦に連結する（1行が1サンプルとなる）が、
       // 必要なのは1列＝1サンプルの行列のため転置する
-      val xBatch = DenseMatrix(xs.slice(i, i + batchSize): _*).t
-
-      val tBatch = ts.slice(i, i + batchSize)
+      val xBatch = DenseMatrix(xs: _*).t
+      val tBatch = t.slice(i, i + batchSize)
       val yBatch = predict(network, xBatch)
 
       // 列ごとにargmaxを求める
       // そのままだと返り値が行ベクトルになりtoArrayできないので転置して縦ベクトルにする
       val p = argmax(yBatch(::, *)).t
-      (p.toArray zip tBatch) map { case (x, y) => if (x == y) 1.0 else 0.0 }
+      (p.toArray zip tBatch) map { case (a, b) => if (a == b) 1.0 else 0.0 }
     }
 
-    println("Accuracy:" + accuracy.flatten.sum / xs.size)
+    println("Accuracy:" + accuracy.flatten.sum / x.size)
   }
 
   def getData() = {
@@ -77,16 +78,6 @@ object NeuralNetwork {
     )
   }
 
-  def predict(network: Map[String, DenseMatrix[Double]], x: DenseVector[Double]): DenseVector[Double] = {
-    val W1 = network("W1")
-    val W2 = network("W2")
-    val W3 = network("W3")
-
-    val z1 = sigmoid(W1 * addIntercept(x))
-    val z2 = sigmoid(W2 * addIntercept(z1))
-    softmax(W3 * addIntercept(z2))
-  }
-
   def predict(network: Map[String, DenseMatrix[Double]], x: DenseMatrix[Double]): DenseMatrix[Double] = {
     val W1 = network("W1")
     val W2 = network("W2")
@@ -97,7 +88,7 @@ object NeuralNetwork {
     softmax(W3 * addIntercept(z2))
   }
 
-  def forward(network: Map[String, DenseMatrix[Double]], x: DenseVector[Double]): DenseVector[Double] = {
+  def forward(network: Map[String, DenseMatrix[Double]], x: DenseMatrix[Double]): DenseMatrix[Double] = {
     val W1 = network("W1")
     val W2 = network("W2")
     val W3 = network("W3")
@@ -107,56 +98,43 @@ object NeuralNetwork {
     identityFunction(W3 * addIntercept(z2))
   }
 
-  def addIntercept(xs: DenseVector[Double]): DenseVector[Double] =
-    // xsの末尾に切片項(1)を追加する
-    DenseVector.vertcat(xs, DenseVector.ones(1))
-
-  def addIntercept(X: DenseMatrix[Double]): DenseMatrix[Double] =
+  def addIntercept(x: DenseMatrix[Double]): DenseMatrix[Double] =
     // Xの末尾（最終行の下）に切片項（値がすべて1の行ベクトル）を追加する
-    DenseMatrix.vertcat(X, DenseMatrix.ones[Double](1, X.cols))
+    DenseMatrix.vertcat(x, DenseMatrix.ones[Double](1, x.cols))
 
   def stepFunction(x: Double): Double =
     if (x > 0) 1.0
     else 0.0
 
-  def stepFunction(xs: DenseVector[Double]): DenseVector[Double] =
-    xs.map(stepFunction)
-
-  def stepFunction(X: DenseMatrix[Double]): DenseMatrix[Double] =
-    X.map(stepFunction)
+  def stepFunction(x: DenseMatrix[Double]): DenseMatrix[Double] =
+    x.map(stepFunction)
 
   def sigmoid(x: Double): Double =
     1.0 / (1.0 + exp(-x))
 
-  def sigmoid(xs: DenseVector[Double]): DenseVector[Double] =
-    xs.map(sigmoid)
-
-  def sigmoid(X: DenseMatrix[Double]): DenseMatrix[Double] =
-    X.map(sigmoid)
+  def sigmoid(x: DenseMatrix[Double]): DenseMatrix[Double] =
+    x.map(sigmoid)
 
   def relu(x: Double): Double =
     List(0, x).max
 
-  def relu(xs: DenseVector[Double]): DenseVector[Double] =
-    xs.map(relu)
+  def relu(x: DenseMatrix[Double]): DenseMatrix[Double] =
+    x.map(relu)
 
-  def relu(X: DenseMatrix[Double]): DenseMatrix[Double] =
-    X.map(relu)
+  def identityFunction(x: DenseMatrix[Double]): DenseMatrix[Double] =
+    x
 
-  def identityFunction(xs: DenseVector[Double]): DenseVector[Double] =
-    xs
-
-  def softmax(as: DenseVector[Double]): DenseVector[Double] = {
-    val c = max(as)
-    val expAs = (as - c).map(exp)
-    val sumExpAs = sum(expAs)
-    expAs / sumExpAs
+  private def softmax(a: DenseVector[Double]): DenseVector[Double] = {
+    val c = max(a)
+    val expA = (a - c).map(exp)
+    val sumExpA = sum(expA)
+    expA / sumExpA
   }
 
-  def softmax(A: DenseMatrix[Double]): DenseMatrix[Double] = {
+  def softmax(a: DenseMatrix[Double]): DenseMatrix[Double] = {
     // 行列版softmax関数
     // 列ごとにsoftmaxする
-    val seq = for (i <- 0 until A.cols) yield softmax(A(::, i))
+    val seq = for (i <- 0 until a.cols) yield softmax(a(::, i))
     // DenseMatrix(DenseVector1, DenseVector2)とすると縦に連結する（1行が1サンプルのsoftmaxの結果）が、
     // 必要なのは1列＝1サンプルの行列のため転置する
     DenseMatrix(seq: _*).t

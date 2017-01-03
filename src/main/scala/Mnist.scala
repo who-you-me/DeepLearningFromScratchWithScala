@@ -50,15 +50,15 @@ class ImageData(prefix: String) extends Data(prefix) {
     if (normalize) normalizeFunc(data.toStream)
     else data.toStream
 
-  def getFlatten(normalize: Boolean = true): Stream[DenseVector[Double]] = {
+  def getFlatten(normalize: Boolean = true): Stream[DenseMatrix[Double]] = {
     flattenFunc(get(normalize))
   }
 
   private def normalizeFunc(xs: Stream[DenseMatrix[Double]]): Stream[DenseMatrix[Double]] =
     xs.map(_ / 255.0)
 
-  private def flattenFunc(xs: Stream[DenseMatrix[Double]]): Stream[DenseVector[Double]] =
-    xs.map(_.t.toDenseVector)
+  private def flattenFunc(xs: Stream[DenseMatrix[Double]]): Stream[DenseMatrix[Double]] =
+    xs.map(_.t.toDenseVector.toDenseMatrix.t)
 }
 
 class LabelData(prefix: String) extends Data(prefix) {
@@ -117,7 +117,7 @@ class ImageLoader(fileName: String) extends Loader(fileName) {
     val matrix = DenseMatrix.zeros[Double](rows, cols)
     for {y <- 0 until cols
          x <- 0 until rows} {
-      matrix(y, x) = stream.readUnsignedByte()
+      matrix.update(y, x, stream.readUnsignedByte())
     }
     matrix
   }
