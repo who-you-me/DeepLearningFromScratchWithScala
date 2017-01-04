@@ -27,7 +27,7 @@ class NeuralNetworkSuite extends FunSuite {
   test("forward(init_network, (1.0, 0.5) nearly equals to (0.31682708, 0.69627909)") {
     def initNetwork(): Map[String, DenseMatrix[Double]] = {
       def concat(W: DenseMatrix[Double], b: DenseVector[Double]): DenseMatrix[Double] =
-        DenseMatrix.vertcat(W, b.toDenseMatrix).t
+        DenseMatrix.vertcat(b.toDenseMatrix, W)
 
       val W1 = DenseMatrix((0.1, 0.3, 0.5), (0.2, 0.4, 0.6))
       val b1 = DenseVector(0.1, 0.2, 0.3)
@@ -44,14 +44,14 @@ class NeuralNetworkSuite extends FunSuite {
     }
 
     val network = initNetwork()
-    val xs = DenseMatrix(1.0, 0.5)
-    val actual = forward(network, xs)
+    val x = DenseMatrix(1.0, 0.5).t
+    val actual = forward(network, x)
     val expected = List(0.31682708, 0.69627909)
     for ((a, e) <- actual.toArray zip expected) assert(a === e)
   }
 
   test("softmax(0.3, 2.9, 4.0) nearly equals to (0.01821127, 0.24519181, 0.73659691)") {
-    val actual = softmax(DenseMatrix(0.3, 2.9, 4.0))
+    val actual = softmax(DenseMatrix(0.3, 2.9, 4.0).t)
     val expected = List(0.01821127, 0.24519181, 0.73659691)
     for ((a, e) <- actual.toArray zip expected) assert(a === e)
   }

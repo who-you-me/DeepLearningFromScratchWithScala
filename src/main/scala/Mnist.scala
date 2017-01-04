@@ -58,7 +58,7 @@ class ImageData(prefix: String) extends Data(prefix) {
     xs.map(_ / 255.0)
 
   private def flattenFunc(xs: Stream[DenseMatrix[Double]]): Stream[DenseMatrix[Double]] =
-    xs.map(_.t.toDenseVector.toDenseMatrix.t)
+    xs.map(_.t.toDenseVector.toDenseMatrix)
 }
 
 class LabelData(prefix: String) extends Data(prefix) {

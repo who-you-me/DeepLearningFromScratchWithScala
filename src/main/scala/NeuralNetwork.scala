@@ -9,11 +9,12 @@ object NeuralNetwork {
   private val weightPath = "./src/main/resources/sample_weight.json"
 
   def main(args: Array[String]): Unit = {
-    val (x, t) = getData()
+    val (xs, ts) = getData()
     val network = initNetwork()
 
 //    val accuracy = for ((x, t) <- xs zip ts) yield {
 //      val y = predict(network, x)
+//      // yは(1 x 10)行列
 //      val p = argmax(y.toDenseVector)
 //      if (p == t) 1.0 else 0.0
 //    }
@@ -21,22 +22,20 @@ object NeuralNetwork {
 //    println("Accuracy:" + accuracy.sum / xs.size)
 
     val batchSize = 100
-    val accuracy = for (i <- x.indices by batchSize) yield {
+    val accuracy = for (i <- xs.indices by batchSize) yield {
       // DenseMatrixはDenseMatrixのコンストラクタに渡せないのでDenseVectorに変換
-      val xs = x.slice(i, i + batchSize).map(_.toDenseVector)
-      // DenseMatrix(DenseVector1, DenseVector2)とすると縦に連結する（1行が1サンプルとなる）が、
-      // 必要なのは1列＝1サンプルの行列のため転置する
-      val xBatch = DenseMatrix(xs: _*).t
-      val tBatch = t.slice(i, i + batchSize)
+      val x = xs.slice(i, i + batchSize).map(_.toDenseVector)
+      val xBatch = DenseMatrix(x: _*)
+      val tBatch = ts.slice(i, i + batchSize)
       val yBatch = predict(network, xBatch)
 
-      // 列ごとにargmaxを求める
-      // そのままだと返り値が行ベクトルになりtoArrayできないので転置して縦ベクトルにする
-      val p = argmax(yBatch(::, *)).t
+      // yBatchは(batchSize x 10)行列
+      // 行ごとにargmaxを求める
+      val p = argmax(yBatch(*, ::))
       (p.toArray zip tBatch) map { case (a, b) => if (a == b) 1.0 else 0.0 }
     }
 
-    println("Accuracy:" + accuracy.flatten.sum / x.size)
+    println("Accuracy:" + accuracy.flatten.sum / xs.size)
   }
 
   def getData() = {
@@ -57,9 +56,10 @@ object NeuralNetwork {
       DenseVector(list: _*)
     }
 
-    def concat(W: DenseMatrix[Double], b: DenseVector[Double]): DenseMatrix[Double] =
+    def concat(W: DenseMatrix[Double], b: DenseVector[Double]): DenseMatrix[Double] = {
       // 切片(b)もWに含めたいので連結する
-      DenseMatrix.vertcat(W, b.toDenseMatrix).t
+      DenseMatrix.vertcat(b.toDenseMatrix, W)
+    }
 
     val jsonStr = String.join(System.getProperty("line.separator"), Files.readAllLines(Paths.get(weightPath)))
     val json = Json.parse(jsonStr)
@@ -83,9 +83,9 @@ object NeuralNetwork {
     val W2 = network("W2")
     val W3 = network("W3")
 
-    val z1 = sigmoid(W1 * addIntercept(x))
-    val z2 = sigmoid(W2 * addIntercept(z1))
-    softmax(W3 * addIntercept(z2))
+    val z1 = sigmoid(addIntercept(x) * W1)
+    val z2 = sigmoid(addIntercept(z1) * W2)
+    softmax(addIntercept(z2) * W3)
   }
 
   def forward(network: Map[String, DenseMatrix[Double]], x: DenseMatrix[Double]): DenseMatrix[Double] = {
@@ -93,14 +93,14 @@ object NeuralNetwork {
     val W2 = network("W2")
     val W3 = network("W3")
 
-    val z1 = sigmoid(W1 * addIntercept(x))
-    val z2 = sigmoid(W2 * addIntercept(z1))
-    identityFunction(W3 * addIntercept(z2))
+    val z1 = sigmoid(addIntercept(x)* W1)
+    val z2 = sigmoid(addIntercept(z1) * W2)
+    identityFunction(addIntercept(z2) * W3)
   }
 
   def addIntercept(x: DenseMatrix[Double]): DenseMatrix[Double] =
-    // Xの末尾（最終行の下）に切片項（値がすべて1の行ベクトル）を追加する
-    DenseMatrix.vertcat(x, DenseMatrix.ones[Double](1, x.cols))
+    // xの先頭列に切片項（値がすべて1の列ベクトル）を追加する
+    DenseMatrix.horzcat(DenseMatrix.ones[Double](x.rows, 1), x)
 
   def stepFunction(x: Double): Double =
     if (x > 0) 1.0
@@ -133,10 +133,8 @@ object NeuralNetwork {
 
   def softmax(a: DenseMatrix[Double]): DenseMatrix[Double] = {
     // 行列版softmax関数
-    // 列ごとにsoftmaxする
-    val seq = for (i <- 0 until a.cols) yield softmax(a(::, i))
-    // DenseMatrix(DenseVector1, DenseVector2)とすると縦に連結する（1行が1サンプルのsoftmaxの結果）が、
-    // 必要なのは1列＝1サンプルの行列のため転置する
-    DenseMatrix(seq: _*).t
+    // 行ごとにsoftmaxする
+    val seq = for (i <- 0 until a.rows) yield softmax(a(i, ::).t)
+    DenseMatrix(seq: _*)
   }
 }
