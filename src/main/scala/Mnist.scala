@@ -4,7 +4,7 @@ import java.nio.file.{Files, Paths}
 import java.util.zip.GZIPInputStream
 
 import scala.collection.mutable.ListBuffer
-import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.linalg.DenseMatrix
 
 object Const {
   val dataSetDir = List(System.getenv("HOME"), ".cache", "mnist").mkString(File.separator)
@@ -66,7 +66,14 @@ class LabelData(prefix: String) extends Data(prefix) {
 
   def get(): Stream[Int] = data.toStream
 
-  //  def getOneHot(): List[List[Int]]
+  def getOneHot(): Stream[DenseMatrix[Double]] = {
+    def oneHotMatrix(label: Int): DenseMatrix[Double] = {
+      val matrix = DenseMatrix.zeros[Double](1, 10)
+      matrix.update(0, label, 1.0)
+      matrix
+    }
+    get().map(oneHotMatrix)
+  }
 }
 
 class Loader(fileName: String) {
