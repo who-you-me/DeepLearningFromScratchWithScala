@@ -1,9 +1,11 @@
+package com.github.who_you_me.deeplearning.dataset
+
 import java.io._
 import java.net.URL
 import java.nio.file.{Files, Paths}
 import java.util.zip.GZIPInputStream
-
 import scala.collection.mutable.ListBuffer
+
 import breeze.linalg.DenseMatrix
 
 object Const {

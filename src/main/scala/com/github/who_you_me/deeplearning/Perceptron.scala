@@ -1,4 +1,6 @@
-import breeze.linalg._
+package com.github.who_you_me.deeplearning
+
+import breeze.linalg.DenseVector
 
 object Perceptron {
   private def gate(w: DenseVector[Double], b: Double)(x1: Double, x2: Double): Double = {

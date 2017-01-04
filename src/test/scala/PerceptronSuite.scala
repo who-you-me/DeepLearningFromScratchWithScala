@@ -1,5 +1,6 @@
 import org.scalatest.FunSuite
-import Perceptron._
+
+import com.github.who_you_me.deeplearning.Perceptron._
 
 class PerceptronSuite extends FunSuite {
   test("AND function returns correct output") {

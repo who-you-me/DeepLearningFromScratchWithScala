@@ -1,12 +1,16 @@
+package com.github.who_you_me.deeplearning
+
 import java.nio.file.{Files, Paths}
 
-import breeze.linalg.{*, DenseMatrix, DenseVector, argmax, max, sum}
-import breeze.numerics.{exp, log, pow}
+import breeze.linalg.{*, DenseMatrix, DenseVector, argmax}
 import play.api.libs.json.{JsValue, Json}
+
+import common.Functions.{identityFunction, sigmoid, softmax}
+import common.Util.addIntercept
+import dataset.Mnist
 
 object NeuralNetwork {
   private val weightPath = "./src/main/resources/sample_weight.json"
-  private val h = 1e-4
 
   def main(args: Array[String]): Unit = {
     val (xs, ts) = getData()
@@ -96,107 +100,5 @@ object NeuralNetwork {
     val z1 = sigmoid(addIntercept(x)* W1)
     val z2 = sigmoid(addIntercept(z1) * W2)
     identityFunction(addIntercept(z2) * W3)
-  }
-
-  def addIntercept(x: DenseMatrix[Double]): DenseMatrix[Double] =
-    // xの先頭列に切片項（値がすべて1の列ベクトル）を追加する
-    DenseMatrix.horzcat(DenseMatrix.ones[Double](x.rows, 1), x)
-
-  def stepFunction(x: Double): Double =
-    if (x > 0) 1.0
-    else 0.0
-
-  def stepFunction(x: DenseMatrix[Double]): DenseMatrix[Double] =
-    x.map(stepFunction)
-
-  def sigmoid(x: Double): Double =
-    1.0 / (1.0 + exp(-x))
-
-  def sigmoid(x: DenseMatrix[Double]): DenseMatrix[Double] =
-    x.map(sigmoid)
-
-  def relu(x: Double): Double =
-    List(0, x).max
-
-  def relu(x: DenseMatrix[Double]): DenseMatrix[Double] =
-    x.map(relu)
-
-  def identityFunction(x: DenseMatrix[Double]): DenseMatrix[Double] =
-    x
-
-  private def softmax(a: DenseVector[Double]): DenseVector[Double] = {
-    val c = max(a)
-    val expA = exp(a - c)
-    val sumExpA = sum(expA)
-    expA / sumExpA
-  }
-
-  def softmax(a: DenseMatrix[Double]): DenseMatrix[Double] = {
-    // 行列版softmax関数
-    // 行ごとにsoftmaxする
-    val seq = for (i <- 0 until a.rows) yield softmax(a(i, ::).t)
-    DenseMatrix(seq: _*)
-  }
-
-  def sumSquaredError(y: DenseVector[Double], t: DenseVector[Double]): Double =
-    0.5 * sum(pow(y - t, 2))
-
-  private def crossEntropyError(y: DenseVector[Double], t: DenseVector[Double]): Double = {
-    assert(y.size == t.size)
-    val delta = 1e-7
-    -sum(t :* log(y + delta))
-  }
-
-  private def crossEntropyError(y: DenseVector[Double], label: Int): Double = {
-    val delta = 1e-7
-    -math.log(y(label) + delta)
-  }
-
-  def crossEntropyError(y: DenseMatrix[Double], t: DenseMatrix[Double]): Double = {
-    assert((y.rows, y.cols) == (t.rows, t.cols))
-    val seq = for (i <- 0 until y.rows) yield {
-      val yRow = y(i, ::).t
-      val tRow = t(i, ::).t
-      crossEntropyError(yRow, tRow)
-    }
-    sum(seq) / y.rows
-  }
-
-  def crossEntropyError(y: DenseMatrix[Double], t: Stream[Int]): Double = {
-    val seq = for(i <- 0 until y.rows) yield {
-      val yRow = y(i, ::).t
-      crossEntropyError(yRow, t(i))
-    }
-    sum(seq) / y.rows
-  }
-
-  def numericalDiff(f: Double => Double, x: Double): Double =
-    (f(x + h) - f(x - h)) / (2 * h)
-
-  def numericalGradient(f: DenseVector[Double] => Double, x: DenseVector[Double]): DenseVector[Double] = {
-    val grad = DenseVector.zeros[Double](x.size)
-
-    for (i <- 0 until x.size) {
-      val x1 = x.copy
-      x1.update(i, x(i) + h)
-
-      val x2 = x.copy
-      x2.update(i, x(i) - h)
-
-      grad.update(i, (f(x1) - f(x2)) / (2 * h))
-    }
-    grad
-  }
-
-  def gradientDescent(f: DenseVector[Double] => Double,
-                      initX: DenseVector[Double],
-                      lr: Double = 0.01,
-                      stepNum: Int = 100) = {
-    var x = initX.copy
-    for (i <- 0 until stepNum) {
-      val grad = numericalGradient(f, x)
-      x -= lr * grad
-    }
-    x
   }
 }
