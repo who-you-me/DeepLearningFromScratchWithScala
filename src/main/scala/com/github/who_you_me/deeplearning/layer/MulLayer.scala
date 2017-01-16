@@ -1,6 +1,6 @@
 package com.github.who_you_me.deeplearning.layer
 
-class MulLayer extends Layer {
+class MulLayer extends BinLayer {
   private var x: Option[Double] = None
   private var y: Option[Double] = None
 
