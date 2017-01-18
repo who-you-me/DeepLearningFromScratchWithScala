@@ -3,17 +3,17 @@ package com.github.who_you_me.deeplearning.layer
 import scala.math.exp
 import breeze.linalg.DenseMatrix
 
-class Sigmoid extends Layer {
+class Sigmoid {
   private var out: Option[DenseMatrix[Double]] = None
 
-  override def forward(x: DenseMatrix[Double]) = {
+  def forward(x: DenseMatrix[Double]): DenseMatrix[Double] = {
     def sigmoid(x: Double) = 1 / (1 + exp(-x))
 
     this.out = Option(x.map(sigmoid))
     out.get
   }
 
-  override def backward(dout: DenseMatrix[Double]) = {
+  def backward(dout: DenseMatrix[Double]): DenseMatrix[Double] = {
     def func(dout: Double, y: Double): Double = dout * (1.0 - y) * y
 
     assert(this.out.nonEmpty)
