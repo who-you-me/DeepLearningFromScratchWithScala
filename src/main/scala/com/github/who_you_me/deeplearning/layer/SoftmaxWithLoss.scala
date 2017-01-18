@@ -22,6 +22,6 @@ class SoftmaxWithLoss {
     val t = this.t.get
 
     val batchSize = t.rows
-    (y - t) / batchSize
+    (y - t) / batchSize.toDouble
   }
 }

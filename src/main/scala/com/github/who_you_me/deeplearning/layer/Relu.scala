@@ -2,15 +2,15 @@ package com.github.who_you_me.deeplearning.layer
 
 import breeze.linalg.DenseMatrix
 
-class Relu extends Layer {
+class Relu extends MidLayer {
   private var mask: Option[DenseMatrix[Boolean]] = None
 
-  override def forward(x: DenseMatrix[Double]) = {
+  def forward(x: DenseMatrix[Double]): DenseMatrix[Double] = {
     mask = Some(x.map(_ <= 0))
     x.map(xx => if (xx > 0) xx else 0.0)
   }
 
-  override def backward(dout: DenseMatrix[Double]) = {
+  def backward(dout: DenseMatrix[Double]): DenseMatrix[Double] = {
     assert(this.mask.nonEmpty)
     val mask = this.mask.get
 

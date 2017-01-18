@@ -3,7 +3,7 @@ package com.github.who_you_me.deeplearning.layer
 import scala.math.exp
 import breeze.linalg.DenseMatrix
 
-class Sigmoid {
+class Sigmoid extends MidLayer {
   private var out: Option[DenseMatrix[Double]] = None
 
   def forward(x: DenseMatrix[Double]): DenseMatrix[Double] = {
