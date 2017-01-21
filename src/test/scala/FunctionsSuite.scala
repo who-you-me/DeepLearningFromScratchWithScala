@@ -32,21 +32,24 @@ class FunctionsSuite extends FunSuite {
   }
 
   test("sumSquaredError returns correct value") {
-    val t = DenseVector(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-    val y1 = DenseVector(0.1, 0.05, 0.6, 0.0, 0.05, 0.1, 0.0, 0.1, 0.0, 0.0)
+    val t = DenseMatrix(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    val y1 = DenseMatrix(0.1, 0.05, 0.6, 0.0, 0.05, 0.1, 0.0, 0.1, 0.0, 0.0)
     assert(sumSquaredError(y1, t) === 0.0975)
-    val y2 = DenseVector(0.1, 0.05, 0.1, 0.0, 0.05, 0.1, 0.0, 0.6, 0.5, 0.0)
+    val y2 = DenseMatrix(0.1, 0.05, 0.1, 0.0, 0.05, 0.1, 0.0, 0.6, 0.5, 0.0)
     assert(sumSquaredError(y2, t) === 0.7225)
   }
 
   test("crossEntropyError returns correct value") {
+    val y = DenseMatrix(
+      (0.1, 0.05, 0.6, 0.0, 0.05, 0.1, 0.0, 0.1, 0.0, 0.0),
+      (0.1, 0.05, 0.1, 0.0, 0.05, 0.1, 0.0, 0.6, 0.5, 0.0)
+    )
+
     val tRow = DenseVector(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     val t1 = DenseMatrix(tRow, tRow)
-    val y = DenseMatrix((0.1, 0.05, 0.6, 0.0, 0.05, 0.1, 0.0, 0.1, 0.0, 0.0),
-      (0.1, 0.05, 0.1, 0.0, 0.05, 0.1, 0.0, 0.6, 0.5, 0.0))
+    val t2 = List(2, 2)
     val expected = (0.51082545709933802 + 2.3025840919940458) / 2.0
     assert(crossEntropyError(y, t1) === expected)
-    val t2 = Stream(2, 2)
     assert(crossEntropyError(y, t2) === expected)
   }
 }
