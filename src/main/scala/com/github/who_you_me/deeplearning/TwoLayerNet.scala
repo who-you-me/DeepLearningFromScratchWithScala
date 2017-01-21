@@ -19,10 +19,10 @@ object TwoLayerNet extends App {
 
 class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitStd: Double = 0.01) {
   private val g = Gaussian(0, weightInitStd)
-  val W1 = DenseMatrix(g.sample(inputSize * hiddenSize): _*).reshape(inputSize, hiddenSize)
-  val b1 = DenseMatrix.zeros[Double](1, hiddenSize)
-  val W2 = DenseMatrix(g.sample(hiddenSize * outputSize): _*).reshape(hiddenSize, outputSize)
-  val b2 = DenseMatrix.zeros[Double](1, outputSize)
+  var W1 = DenseMatrix(g.sample(inputSize * hiddenSize): _*).reshape(inputSize, hiddenSize)
+  var b1 = DenseMatrix.zeros[Double](1, hiddenSize)
+  var W2 = DenseMatrix(g.sample(hiddenSize * outputSize): _*).reshape(hiddenSize, outputSize)
+  var b2 = DenseMatrix.zeros[Double](1, outputSize)
 
   val layers = mutable.LinkedHashMap.empty[String, MidLayer]
   layers += ("Affine1" -> new Affine(W1, b1))
@@ -55,9 +55,12 @@ class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitSt
     def lossW(W: DenseMatrix[Double]): Double =
       loss(x, t)
 
-    val gradW1 = Gradient.numericalGradient(lossW(_), W1)
-    val gradW2 = Gradient.numericalGradient(lossW(_), W2)
-    (gradW1, gradW2)
+    Map(
+      "W1" -> Gradient.numericalGradient(lossW(_), W1),
+      "b1" -> Gradient.numericalGradient(lossW(_), b1),
+      "W2" -> Gradient.numericalGradient(lossW(_), W2),
+      "b2" -> Gradient.numericalGradient(lossW(_), b2)
+    )
   }
 
   def gradient(x: DenseMatrix[Double], t: DenseMatrix[Double]) = {
@@ -68,6 +71,11 @@ class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitSt
     val revLayers = layers.values.toList.reverse
     for (layer <- revLayers) { dout = layer.backward(dout) }
 
-    (layers("Affine1").dW.get, layers("Affine2").dW.get)
+    Map(
+      "W1" -> layers("Affine1").dW.get,
+      "b1" -> layers("Affine1").db.get,
+      "W2" -> layers("Affine2").dW.get,
+      "b2" -> layers("Affine2").db.get
+    )
   }
 }
