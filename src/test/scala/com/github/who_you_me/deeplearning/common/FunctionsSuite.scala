@@ -1,8 +1,9 @@
-import breeze.linalg.{DenseMatrix, DenseVector}
-import org.scalatest.FunSuite
-import org.scalactic.TolerantNumerics
+package com.github.who_you_me.deeplearning.common
 
-import com.github.who_you_me.deeplearning.common.Functions._
+import breeze.linalg.{DenseMatrix, DenseVector}
+import org.scalactic.TolerantNumerics
+import org.scalatest.FunSuite
+import Functions._
 
 class FunctionsSuite extends FunSuite {
   implicit val doubleEquality = TolerantNumerics.tolerantDoubleEquality(1e-8)

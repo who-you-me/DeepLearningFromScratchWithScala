@@ -1,29 +1,12 @@
 package com.github.who_you_me.deeplearning.common
 
-import breeze.linalg.{DenseMatrix, DenseVector}
+import breeze.linalg.DenseMatrix
 
 object Gradient {
   val h = 1e-4
 
   def numericalDiff(f: Double => Double, x: Double): Double =
     (f(x + h) - f(x - h)) / (2 * h)
-
-  def numericalGradient(f: DenseVector[Double] => Double, x: DenseVector[Double]): DenseVector[Double] = {
-    val grad = DenseVector.zeros[Double](x.size)
-
-    for (i <- 0 until x.size) {
-      val tmp_val = x(i)
-      x.update(i, tmp_val + h)
-      val fxh1 = f(x)
-
-      x.update(i, tmp_val - h)
-      val fxh2 = f(x)
-
-      grad.update(i, (fxh1 - fxh2) / (2 * h))
-      x.update(i, tmp_val)
-    }
-    grad
-  }
 
   def numericalGradient(f: DenseMatrix[Double] => Double, x: DenseMatrix[Double]): DenseMatrix[Double] = {
     val grad = DenseMatrix.zeros[Double](x.rows, x.cols)
@@ -42,8 +25,8 @@ object Gradient {
     grad
   }
 
-  def gradientDescent(f: DenseVector[Double] => Double,
-                      initX: DenseVector[Double],
+  def gradientDescent(f: DenseMatrix[Double] => Double,
+                      initX: DenseMatrix[Double],
                       lr: Double = 0.01,
                       stepNum: Int = 100) = {
     var x = initX.copy
