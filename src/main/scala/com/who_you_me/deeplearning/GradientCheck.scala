@@ -17,10 +17,10 @@ object GradientCheck extends App {
   val tBatch = DenseMatrix(t: _*)
 
   val gradNumerical = network.numericalGradient(xBatch, tBatch)
-  val gradBackprop = network.gradient(xBatch, tBatch)
+  val gradBackProp = network.gradient(xBatch, tBatch)
 
   for (key <- gradNumerical.keysIterator) {
-    val diff = sum(abs(gradBackprop(key) - gradNumerical(key)))
+    val diff = sum(abs(gradBackProp(key) - gradNumerical(key)))
     println(s"$key:$diff")
   }
 }

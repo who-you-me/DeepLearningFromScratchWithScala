@@ -1,14 +1,15 @@
 package com.who_you_me.deeplearning
 
-import breeze.linalg.DenseMatrix
+import breeze.linalg.{DenseMatrix, DenseVector}
 import breeze.stats.distributions.Gaussian
+import common.CastImplicits.denseVectorToDenseMatrix
 import common.Functions.{crossEntropyError, softmax}
 import common.Gradient.numericalGradient
 
 object SimpleNet extends App {
   val net = new SimpleNet()
-  val x = DenseMatrix(0.6, 0.9).t
-  val t = DenseMatrix(0.0, 0.0, 0.1).t
+  val x = DenseVector(0.6, 0.9)
+  val t = DenseVector(0.0, 0.0, 0.1)
 
   def f(W: DenseMatrix[Double]): Double =
     net.loss(x, t)

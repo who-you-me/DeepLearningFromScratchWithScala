@@ -3,19 +3,8 @@ package com.who_you_me.deeplearning
 import scala.collection.mutable
 import breeze.linalg.{*, DenseMatrix, argmax}
 import breeze.stats.distributions.Gaussian
-import layer.{Affine, MidLayer, Relu, SoftmaxWithLoss}
 import common.Gradient
-
-object TwoLayerNet extends App {
-  val g = Gaussian(0, 1)
-  val net = new TwoLayerNet(784, 50, 10)
-  val x = DenseMatrix(g.sample(784 * 50): _*).reshape(50, 784)
-  val t = DenseMatrix(g.sample(50 * 10): _*).reshape(50, 10)
-
-  val gradW1, gradW2 = net.gradient(x, t)
-  println(gradW1)
-  println(gradW2)
-}
+import layer.{Affine, MidLayer, Relu, SoftmaxWithLoss}
 
 class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitStd: Double = 0.01) {
   private val g = Gaussian(0, weightInitStd)
@@ -24,10 +13,11 @@ class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitSt
   var W2 = DenseMatrix(g.sample(hiddenSize * outputSize): _*).reshape(hiddenSize, outputSize)
   var b2 = DenseMatrix.zeros[Double](1, outputSize)
 
-  val layers = mutable.LinkedHashMap.empty[String, MidLayer]
-  layers += ("Affine1" -> new Affine(W1, b1))
-  layers += ("Relu1" -> new Relu())
-  layers += ("Affine2" -> new Affine(W2, b2))
+  val layers = mutable.LinkedHashMap[String, MidLayer](
+    "Affine1" -> new Affine(W1, b1),
+    "Relu1" -> new Relu(),
+    "Affine2" -> new Affine(W2, b2)
+  )
 
   val lastLayer = new SoftmaxWithLoss()
 
@@ -52,8 +42,7 @@ class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitSt
   }
 
   def numericalGradient(x: DenseMatrix[Double], t: DenseMatrix[Double]) = {
-    def lossW(W: DenseMatrix[Double]): Double =
-      loss(x, t)
+    def lossW(W: DenseMatrix[Double]): Double = loss(x, t)
 
     Map(
       "W1" -> Gradient.numericalGradient(lossW, W1),

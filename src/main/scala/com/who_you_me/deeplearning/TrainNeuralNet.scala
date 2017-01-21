@@ -1,8 +1,7 @@
 package com.who_you_me.deeplearning
 
-import breeze.linalg.DenseMatrix
-
 import scala.util.Random
+import breeze.linalg.DenseMatrix
 import dataset.Mnist
 
 object TrainNeuralNet extends App {
@@ -19,7 +18,6 @@ object TrainNeuralNet extends App {
   val trainSize = 60000
   val batchSize = 100
   val learningRate = 0.1
-
 
   var trainLossList = List.empty[Double]
   var trainAccList = List.empty[Double]
