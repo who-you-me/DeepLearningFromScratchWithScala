@@ -27,7 +27,7 @@ object TrainNeuralNet extends App {
   for (i <- 0 until itersNum) {
     if (i % 100 == 0) { println(i) }
     val batchMask = Random.shuffle(List.range(0, trainSize)) take batchSize
-    val xBatch = mnist.trainImg.getFlatten(batchMask, true)
+    val xBatch = mnist.trainImg.getFlatten(batchMask, normalize = true)
     val tBatch = mnist.trainLabel.getOneHot(batchMask)
 
     val grad = network.gradient(xBatch, tBatch)
