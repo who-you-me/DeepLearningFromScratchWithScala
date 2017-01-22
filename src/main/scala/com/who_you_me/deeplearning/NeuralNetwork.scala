@@ -12,24 +12,25 @@ object NeuralNetwork {
   private val weightPath = "./src/main/resources/sample_weight.json"
 
   def main(args: Array[String]): Unit = {
-    val (xs, ts) = getData()
+    val mnist = Mnist.get()
+    val xs = mnist.testImg.getFlatten(true)
+    val ts = mnist.testLabel.get()
     val network = initNetwork()
 
-    val accuracy1 = for ((x, t) <- xs zip ts) yield {
+    val accuracy = for ((x, t) <- xs zip ts) yield {
       val y = predict(network, x)
       // yは(1 x 10)行列
       val p = argmax(y.toDenseVector)
       if (p == t) 1.0 else 0.0
     }
 
-    println("Accuracy:" + accuracy1.sum / xs.size)
+    println("Accuracy:" + accuracy.sum / xs.size)
 
     val batchSize = 100
-    val accuracy2 = for (i <- xs.indices by batchSize) yield {
-      // DenseMatrixはDenseMatrixのコンストラクタに渡せないのでDenseVectorに変換
-      val x = xs.slice(i, i + batchSize).map(_.toDenseVector)
-      val xBatch = DenseMatrix(x: _*)
-      val tBatch = ts.slice(i, i + batchSize)
+    val batchAccuracy = for (i <- xs.indices by batchSize) yield {
+      val indices = List.range(i, i + batchSize)
+      val xBatch = mnist.testImg.getFlatten(indices, normalize = true)
+      val tBatch = mnist.testLabel.get(indices)
       val yBatch = predict(network, xBatch)
 
       // yBatchは(batchSize x 10)行列
@@ -38,14 +39,7 @@ object NeuralNetwork {
       (p.toArray zip tBatch) map { case (a, b) => if (a == b) 1.0 else 0.0 }
     }
 
-    println("Accuracy:" + accuracy2.flatten.sum / xs.size)
-  }
-
-  def getData() = {
-    val mnist = Mnist.get()
-    val xTest = mnist.testImg.getFlatten(true)
-    val tTest = mnist.testLabel.get()
-    (xTest, tTest)
+    println("Accuracy:" + batchAccuracy.flatten.sum / xs.size)
   }
 
   def initNetwork(): Map[String, DenseMatrix[Double]] = {
