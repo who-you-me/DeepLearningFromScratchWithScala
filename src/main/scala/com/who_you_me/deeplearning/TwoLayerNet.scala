@@ -13,6 +13,13 @@ class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitSt
   var W2 = DenseMatrix(g.sample(hiddenSize * outputSize): _*).reshape(hiddenSize, outputSize)
   var b2 = DenseMatrix.zeros[Double](1, outputSize)
 
+  val params = Map(
+    "W1" -> W1,
+    "b1" -> b1,
+    "W2" -> W2,
+    "b2" -> b2
+  )
+
   val layers = mutable.LinkedHashMap[String, MidLayer](
     "Affine1" -> new Affine(W1, b1),
     "Relu1" -> new Relu(),
@@ -39,6 +46,19 @@ class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitSt
     val argmaxY = argmax(y(*, ::))
     val argmaxT = argmax(t(*, ::))
     (argmaxY :== argmaxT).activeSize.toDouble / x.rows
+  }
+
+  def accuracy(xs: Stream[DenseMatrix[Double]], ts: Stream[DenseMatrix[Double]]): Double = {
+    val batchSize = 100
+    val losses = for (i <- xs.indices by batchSize) yield {
+      val x = xs.slice(i, i + batchSize).map(_.toDenseVector)
+      val xBatch = DenseMatrix(x: _*)
+      val t = ts.slice(i, i + batchSize).map(_.toDenseVector)
+      val tBatch = DenseMatrix(t: _*)
+//      accuracy(xBatch, tBatch)
+      loss(xBatch, tBatch)
+    }
+    losses.sum
   }
 
   def numericalGradient(x: DenseMatrix[Double], t: DenseMatrix[Double]) = {

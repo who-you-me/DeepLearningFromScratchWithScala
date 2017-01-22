@@ -43,7 +43,7 @@ object NeuralNetwork {
 
   def getData() = {
     val mnist = Mnist.get()
-    val xTest = mnist.testImg.getFlatten()
+    val xTest = mnist.testImg.getFlatten(true)
     val tTest = mnist.testLabel.get()
     (xTest, tTest)
   }

@@ -7,12 +7,18 @@ class LabelData(prefix: String) extends Data(prefix) {
 
   def get(): Stream[Int] = data.toStream
 
+  private def oneHotMatrix(label: Int): DenseMatrix[Double] = {
+    val matrix = DenseMatrix.zeros[Double](1, 10)
+    matrix.update(0, label, 1.0)
+    matrix
+  }
+
   def getOneHot(): Stream[DenseMatrix[Double]] = {
-    def oneHotMatrix(label: Int): DenseMatrix[Double] = {
-      val matrix = DenseMatrix.zeros[Double](1, 10)
-      matrix.update(0, label, 1.0)
-      matrix
-    }
     get().map(oneHotMatrix)
+  }
+
+  def getOneHot(indices: List[Int]): DenseMatrix[Double] = {
+    val rows = for (i <- indices) yield { oneHotMatrix(data(i)) }
+    DenseMatrix(rows.map(_.toDenseVector): _*)
   }
 }
