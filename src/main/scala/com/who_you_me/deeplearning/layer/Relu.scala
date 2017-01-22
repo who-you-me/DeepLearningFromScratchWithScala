@@ -17,9 +17,10 @@ class Relu extends MidLayer {
 
     assert((dout.rows, dout.cols) == (mask.rows, mask.cols))
 
-    for (i <- 0 until dout.rows; j <- 0 until dout.cols) {
-      if (mask(i, j)) dout.update(i, j, 0.0)
+    val dx = dout.copy
+    for (i <- 0 until dx.rows; j <- 0 until dout.cols) {
+      if (mask(i, j)) dx.update(i, j, 0.0)
     }
-    dout
+    dx
   }
 }
