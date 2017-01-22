@@ -3,6 +3,7 @@ package com.who_you_me.deeplearning
 import breeze.linalg.{DenseMatrix, DenseVector}
 import org.scalactic.TolerantNumerics
 import org.scalatest.FunSuite
+import common.CastImplicits.denseVectorToDenseMatrix
 import NeuralNetwork.forward
 
 class NeuralNetworkSuite extends FunSuite {
@@ -13,17 +14,13 @@ class NeuralNetworkSuite extends FunSuite {
       def concat(W: DenseMatrix[Double], b: DenseVector[Double]): DenseMatrix[Double] =
         DenseMatrix.vertcat(b.toDenseMatrix, W)
 
-      val W1 = DenseMatrix((0.1, 0.3, 0.5), (0.2, 0.4, 0.6))
-      val b1 = DenseVector(0.1, 0.2, 0.3)
-      val W2 = DenseMatrix((0.1, 0.4), (0.2, 0.5), (0.3, 0.6))
-      val b2 = DenseVector(0.1, 0.2)
-      val W3 = DenseMatrix((0.1, 0.3), (0.2, 0.4))
-      val b3 = DenseVector(0.1, 0.2)
-
       Map(
-        "W1" -> concat(W1, b1),
-        "W2" -> concat(W2, b2),
-        "W3" -> concat(W3, b3)
+        "W1" -> DenseMatrix((0.1, 0.3, 0.5), (0.2, 0.4, 0.6)),
+        "b1" -> DenseVector(0.1, 0.2, 0.3),
+        "W2" -> DenseMatrix((0.1, 0.4), (0.2, 0.5), (0.3, 0.6)),
+        "b2" -> DenseVector(0.1, 0.2),
+        "W3" -> DenseMatrix((0.1, 0.3), (0.2, 0.4)),
+        "b3" -> DenseVector(0.1, 0.2)
       )
     }
 
