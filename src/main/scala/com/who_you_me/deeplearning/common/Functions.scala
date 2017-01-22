@@ -1,11 +1,9 @@
 package com.who_you_me.deeplearning.common
 
-import breeze.linalg.{*, DenseMatrix, DenseVector, max, sum}
+import breeze.linalg.{*, DenseMatrix, DenseVector, argmax, max, sum}
 import breeze.numerics.{exp, log, pow}
 
 object Functions {
-  private val delta = 1e-7
-
   def identityFunction[T](x: T): T =
     x
 
@@ -45,16 +43,13 @@ object Functions {
 
   def crossEntropyError(y: DenseMatrix[Double], t: DenseMatrix[Double]): Double = {
     assert((y.rows, y.cols) == (t.rows, t.cols))
-    -1.0 * sum(t :* log(y + delta)) / y.rows
+    crossEntropyError(y, argmax(t(*, ::)).toArray.toList)
   }
 
   def crossEntropyError(y: DenseMatrix[Double], t: List[Int]): Double = {
     assert(y.rows == t.size)
     assert(y.cols >= t.max)
-    val seq = for (i <- 0 until y.rows) yield {
-      val label = t(i)
-      -1.0 * log(y(i, label) + delta)
-    }
+    val seq = for (i <- 0 until y.rows) yield { -1.0 * log(y(i, t(i))) }
     sum(seq) / y.rows
   }
 }

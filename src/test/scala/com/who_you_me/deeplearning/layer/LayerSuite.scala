@@ -67,7 +67,6 @@ class LayerSuite extends FunSuite {
     test("Sigmoid returns correct value") {
       val sigmoid = new Sigmoid()
 
-      println(x)
       val actual1 = sigmoid.forward(x)
       val expected1 = DenseMatrix(
         (0.2689414213699951, 0.7310585786300049, 0.5),
@@ -130,7 +129,7 @@ class LayerSuite extends FunSuite {
         (0.0, 1.0, 0.0),
         (0.0, 1.0, 0.0)
       )
-      assert(softmaxWithLoss.forward(x, t) === 8.26285073254062)
+      assert(softmaxWithLoss.forward(x, t) === 52.703802982222193)
 
       val dx = softmaxWithLoss.backward()
       val expected = DenseMatrix(

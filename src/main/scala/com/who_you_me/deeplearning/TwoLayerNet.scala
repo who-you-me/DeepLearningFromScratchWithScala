@@ -48,17 +48,16 @@ class TwoLayerNet(inputSize: Int, hiddenSize: Int, outputSize: Int, weightInitSt
     (argmaxY :== argmaxT).activeSize.toDouble / x.rows
   }
 
-  def accuracy(xs: Stream[DenseMatrix[Double]], ts: Stream[DenseMatrix[Double]]): Double = {
+  def accuracy(xs: Stream[DenseMatrix[Double]], ts: Stream[DenseMatrix[Double]], size: Int): Double = {
     val batchSize = 100
-    val losses = for (i <- xs.indices by batchSize) yield {
+    val correct = for (i <- xs.indices by batchSize) yield {
       val x = xs.slice(i, i + batchSize).map(_.toDenseVector)
       val xBatch = DenseMatrix(x: _*)
       val t = ts.slice(i, i + batchSize).map(_.toDenseVector)
       val tBatch = DenseMatrix(t: _*)
-//      accuracy(xBatch, tBatch)
-      loss(xBatch, tBatch)
+      accuracy(xBatch, tBatch) * xBatch.rows
     }
-    losses.sum
+    correct.sum / size
   }
 
   def numericalGradient(x: DenseMatrix[Double], t: DenseMatrix[Double]) = {

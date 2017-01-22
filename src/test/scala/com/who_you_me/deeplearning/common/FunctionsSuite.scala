@@ -49,7 +49,7 @@ class FunctionsSuite extends FunSuite {
     val tRow = DenseVector(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     val t1 = DenseMatrix(tRow, tRow)
     val t2 = List(2, 2)
-    val expected = (0.51082545709933802 + 2.3025840919940458) / 2.0
+    val expected = 1.4067053583800182
     assert(crossEntropyError(y, t1) === expected)
     assert(crossEntropyError(y, t2) === expected)
   }

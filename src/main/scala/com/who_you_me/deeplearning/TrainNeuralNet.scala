@@ -12,9 +12,9 @@ object TrainNeuralNet extends App {
 
   val network = new TwoLayerNet(784, 50, 10)
 
-//  val itersNum = 10000
-  val itersNum = 1800
+  val itersNum = 10000
   val trainSize = 60000
+  val testSize = 10000
   val batchSize = 100
   val learningRate = 0.1
 
@@ -39,11 +39,15 @@ object TrainNeuralNet extends App {
     trainLossList = loss :: trainLossList
 
     if (i % iterPerEpoch == 0) {
-      val trainAcc = network.accuracy(xTrain, tTrain)
-      val testAcc = network.accuracy(xTest, tTest)
+      val trainAcc = network.accuracy(xTrain, tTrain, trainSize)
+      val testAcc = network.accuracy(xTest, tTest, testSize)
       trainAccList = trainAcc :: trainAccList
       testAccList = testAcc :: testAccList
       println(trainAcc, testAcc)
     }
+
+    trainLossList = trainLossList.reverse
+    trainAccList = trainAccList.reverse
+    testAccList = testAccList.reverse
   }
 }
